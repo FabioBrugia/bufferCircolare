@@ -60,7 +60,17 @@ impl <T> CircularBuffer<T>{
     }
     // vedi sotto*
     pub fn make_contiguous(&mut self) {
-        todo!()
+        // if it's empty, we can just reset the pointers
+        if self.size == 0 {
+            self.head = 0;
+            self.tail = 0;
+        } else {
+            // otherwise we need to make it contiguos: just rotate it until head is zero
+            while self.head != 0 {
+                let element = self.read().unwrap();
+                self.write(element).unwrap();
+            }
+        }
     }
 }
 

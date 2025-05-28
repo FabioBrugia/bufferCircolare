@@ -1,3 +1,5 @@
+use std::ops::{Deref, Index, IndexMut};
+
 pub struct CircularBuffer<T>{
     buffer: Vec<Option<T>>,
     head: usize,
@@ -72,9 +74,45 @@ impl <T> CircularBuffer<T>{
             }
         }
     }
+    fn is_contiguous(&self) -> bool {
+        self.size == 0 || self.head <= self.tail || self.tail == 0
+    }
 }
+impl<T> Index<usize> for CircularBuffer<T> {
+    type Output = T;
+    fn index(&self, index: usize) -> &T {
+        if index > self.size {
+            panic!("Index out of bounds");
+        }
+        let real_index = (index + self.head)% self.size;
+        self.buffer[real_index].as_ref().expect("accessing an empty buffer")
+    }
 
+}
+impl <T> IndexMut<usize> for CircularBuffer<T> {
+    fn index_mut(&mut self, index: usize) -> &mut T {
+        if index > self.size {
+            panic!("Index out of bounds");
+        }
+        let real_index = (index + self.head) % self.size;
+        self.buffer[real_index].as_mut().expect("accessing an empty buffer")
+    }
+}
+impl<T> Deref for CircularBuffer<T> {
+    type Target = [Option<T>];
 
+    fn deref(&self) -> &Self::Target {
+        let size = self.size;
+        if size == 0 {
+            return &[]
+        }
+       if self.is_contiguous() {
+            &self.buffer[self.head..self.head+size]
+        } else {
+            panic!("Buffer is not contiguous");
+        }
+    }
+}
 
 fn main() {
     println!("Hello, world!");
